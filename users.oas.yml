@@ -1,0 +1,314 @@
+openapi: 3.0.3
+
+#-------------------------------
+#          METADATA
+#-------------------------------
+info: 
+  title: User API design
+  description: |-
+    ---
+    <!-- TABLE OF CONTENTS -->
+    
+    <details>
+      <summary>Table of Contents</summary>
+      <ol>
+        <li>
+          <a href="#about-the-project">About The Project</a>
+          <ul>
+            <li><a href="#built-with">Built With</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#getting-started">Getting Started</a>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#installation">Installation</a></li>
+          </ul>
+        </li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#contributing">Contributing</a></li>
+        <li><a href="#license">License</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#acknowledgments">Acknowledgments</a></li>
+      </ol>
+    </details>
+    
+    # This is a title
+    
+    
+
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed suscipit tellus in ultrices fermentum. Curabitur ac pretium mi, eget faucibus nisl. Praesent sit amet libero vel libero pretium porta vel et massa. Donec scelerisque mattis quam. Donec et metus diam. Quisque pulvinar efficitur tortor at rutrum. Vivamus consectetur pretium nisi id egestas. Cras facilisis at turpis vel sollicitudin. Donec ac condimentum sapien, ac convallis metus. Curabitur suscipit risus vitae lacus dapibus dictum. In vel mollis diam.
+
+    Nam blandit mi sed aliquam efficitur. Proin quis bibendum ex. Quisque imperdiet, est a tincidunt ultricies, sem purus dapibus tellus, gravida tristique justo sapien non orci. Praesent turpis augue, mollis non urna et, condimentum hendrerit nunc. Sed rhoncus nunc in placerat viverra. Nunc ultricies mattis lorem, eu dignissim ante egestas at. Mauris vehicula blandit dictum. Sed viverra tristique euismod. Cras eleifend, sapien sed sollicitudin tincidunt, enim velit sollicitudin sem, sed eleifend mauris nulla ac elit. Sed hendrerit metus sed tincidunt vulputate. Nam maximus nunc id mi pellentesque, eu auctor nibh gravida. Nullam mattis elit non nibh tincidunt gravida. Vivamus in dolor eu nibh commodo pretium. 
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: local development server
+
+tags:
+  - name: Users
+    description: User service
+
+
+#-------------------------------
+#          COMPONENTS
+#-------------------------------
+components:
+#-------------------------------
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnprocessableEntity:
+      description: The payload contains invalid values.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+#-------------------------------
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    User:
+      type: object
+      required:
+        - name 
+        - emailAdress
+        - roles
+      properties: 
+        name: 
+          type: string
+        emailAdress: 
+          type: string
+        role: 
+          type: array
+          items:
+            type: string
+            enum:
+            - admin
+            - customer
+            - developer
+    userCreated: 
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/User"
+      properties:
+        id:
+          type: string
+          format: uuid
+#------------------------------- 
+  requestBodies:
+    UserCreate:
+      description: Registers a new user
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: "#/components/schemas/User"
+            - type: object
+            properties:
+              password:
+                type: string
+                format: password
+    UserUpdate:
+      description: Updates an active user
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/User"
+#-------------------------------      
+  securitySchemes:
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://coffeemesh-dev.eu.auth0.com/.well-known/openid-configuration
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://coffeemesh-dev.eu.auth0.com/oauth/token
+          scopes: {}
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+#------------------------------- 
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+#-------------------------------
+  examples:
+    arrayOfusers:
+      summary: Array of users
+      value:
+      - id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user1"
+        emailAdress: "test@email.com"
+        roles: ["admin"]
+      - id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user2"
+        emailAdress: "test2@email.com"
+        roles: ["customer"]
+      - id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user3"
+        emailAdress: "test3@email.com"
+        roles: ["admin"]
+      - id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user4"
+        emailAdress: "test4@email.com"
+        roles: ["developer"]
+      - id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user5"
+        emailAdress: "test5@email.com"
+        roles: ["developer"]
+    sigleUser:
+      summary: Single User
+      value:
+        id: "82195850-cec4-42bd-b216-3cfa598aa4af"
+        name: "user5"
+        emailAdress: "test5@email.com"
+        roles: ["developer"]
+
+
+
+#-------------------------------
+#             PATHS
+#-------------------------------
+paths:
+#-------------------------------
+  /users:
+    get: 
+      tags:
+      - Users
+      operationId: getUsers
+      summary: List of users
+      responses: 
+        '200':
+          description: Successfull operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              examples:
+                arrayOfusers:
+                  $ref: "#/components/examples/arrayOfusers"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    post: 
+      tags:
+        - Users
+      operationId: createUser
+      summary: Creates a new User
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UserCreate"
+      responses:
+        '201':
+          description: User Created
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/userCreated'
+              examples:
+                singleUsers:
+                  $ref: "#/components/examples/sigleUser"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+#------------------------------- 
+  /users/{id}:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      tags:
+        - Users
+      operationId: getUser
+      summary: Fetch user by id 
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userCreated'
+              examples:
+                singleUsers:
+                  $ref: "#/components/examples/sigleUser"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+    
+    put: 
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      tags:
+        - Users
+      summary: Update active user
+      operationId: updateUser
+      requestBody:
+        required: true
+        $ref: "#/components/requestBodies/UserCreate"
+      responses:
+        '201':
+          description: User Updated
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/userCreated'
+              examples:
+                singleUsers:
+                  $ref: "#/components/examples/sigleUser"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+    delete:
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      tags:
+        - Users
+      operationId: deleteUser
+      responses:
+        '204':
+          description: The resource was deleted successfully
+
+#-------------------------------
+#           SECURITY
+#------------------------------- 
+# security:
+  # - oauth2:
+  #   - deleteUser
+  #   - updateUser
+  #   - getUser
+  #   - getUsers
+  #   - createUser
+  # - openId:
+  #   - deleteUser
+  #   - updateUser
+  #   - getUser
+  #   - getUsers
+  #   - createUser
